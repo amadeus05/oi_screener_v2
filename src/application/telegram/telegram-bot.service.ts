@@ -161,7 +161,7 @@ export class TelegramBotService {
                   chatId,
                   { source: image, filename: `${signal.symbol}-${signal.signalNumberForDay}.png` },
                   {
-                    caption: `${message}\n\n🖼️ Chart attached as SVG preview`,
+                    caption: message,
                     parse_mode: 'HTML',
                   },
                 ),

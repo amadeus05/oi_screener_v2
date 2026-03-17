@@ -29,9 +29,10 @@ export class TelegramSignalMessageFormatter {
       rule?.oiDirection === TriggerDirection.DOWN
         ? metrics?.oiDropPercent
         : metrics?.oiGrowthPercent;
+    const symbolTitle = this.formatLinkedSymbol(signal.symbol, context.exchangeId);
 
     return [
-      `${isLong ? '🟢' : '🔴'} №${signal.signalNumberForDay} | ${isLong ? 'LONG' : 'SHORT'} | <b>${exchangeTitle}</b> | <b>${signal.symbol}</b>`,
+      `${isLong ? '🟢' : '🔴'} №${signal.signalNumberForDay} | ${isLong ? 'LONG' : 'SHORT'} | <b>${exchangeTitle}</b> | ${symbolTitle}`,
       `⏱️ Окно: <b>${windowTitle}</b>`,
       `📈 OI: <b>${this.formatSignedPercent(oiPercent, rule?.oiDirection)}</b>`,
       `💹 Изменение цены: <b>${this.formatSignedPercent(metrics?.priceChangePercent)}</b>`,
@@ -102,5 +103,34 @@ export class TelegramSignalMessageFormatter {
       default:
         return exchangeId;
     }
+  }
+
+  private formatLinkedSymbol(symbol: string, exchangeId: ExchangeId): string {
+    const url = this.getFuturesSymbolUrl(symbol, exchangeId);
+    const escapedSymbol = this.escapeHtml(symbol);
+
+    if (!url) {
+      return `<b>${escapedSymbol}</b>`;
+    }
+
+    return `<a href="${url}"><b>${escapedSymbol}</b></a>`;
+  }
+
+  private getFuturesSymbolUrl(symbol: string, exchangeId: ExchangeId): string | null {
+    switch (exchangeId) {
+      case ExchangeId.BINANCE:
+        return `https://www.binance.com/ru-UA/futures/${encodeURIComponent(symbol)}`;
+      case ExchangeId.BYBIT:
+        return `https://www.bybit.com/trade/usdt/${encodeURIComponent(symbol)}`;
+      default:
+        return null;
+    }
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
   }
 }
