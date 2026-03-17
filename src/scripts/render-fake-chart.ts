@@ -79,7 +79,9 @@ async function main(): Promise<void> {
   const oi = createFakeOi(candles);
   const delta = createFakeDelta(candles);
   const renderer = new SignalChartRenderer();
-  const output = await renderer.renderSvgBuffer({
+
+  // Generate SVG with all panels
+  const svg = renderer.renderSvg({
     exchange: 'Binance',
     symbol: 'ARPAUSDT',
     direction: 'LONG',
@@ -87,13 +89,34 @@ async function main(): Promise<void> {
     candles,
     openInterestPoints: oi,
     minuteTradeDeltas: delta,
+    width: 900,
+    height: 650,
   });
 
   const outputDir = path.resolve('tmp');
   fs.mkdirSync(outputDir, { recursive: true });
-  const outputPath = path.join(outputDir, 'fake-signal-chart.svg');
-  fs.writeFileSync(outputPath, output);
-  console.log(`Chart preview generated: ${outputPath}`);
+
+  // Save SVG
+  const svgPath = path.join(outputDir, 'chart-with-oi-delta.svg');
+  fs.writeFileSync(svgPath, svg);
+  console.log(`SVG generated: ${svgPath}`);
+
+  // Generate and save PNG
+  const pngBuffer = await renderer.renderPngBuffer({
+    exchange: 'Binance',
+    symbol: 'ARPAUSDT',
+    direction: 'LONG',
+    signalNumber: 2,
+    candles,
+    openInterestPoints: oi,
+    minuteTradeDeltas: delta,
+    width: 900,
+    height: 650,
+  });
+
+  const pngPath = path.join(outputDir, 'chart-with-oi-delta.png');
+  fs.writeFileSync(pngPath, pngBuffer);
+  console.log(`PNG generated: ${pngPath}`);
 }
 
 main().catch((error: unknown) => {
